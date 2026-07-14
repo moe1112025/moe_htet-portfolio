@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moe Htet Ar Kar | Cyber Security Tactical Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Orbitron:wght@600;800;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-cyber: #02050a;
+            --bg-card: rgba(4, 10, 20, 0.85);
+            --accent-cyan: #00f2fe;
+            --accent-green: #39ff14;
+            --accent-orange: #ff9f43;
+            --accent-red: #ff5252;
+            --accent-dim: rgba(0, 242, 254, 0.12);
+            --text-cyber: #e2e8f0;
+            --text-dim: #475569;
+            --border-cyber: rgba(0, 242, 254, 0.18);
+            --terminal-bg: #030712;
+            --burp-bg: #1e1e24;
+            --burp-orange: #ff6600;
+        }
+
+        [data-theme="light"] {
+            --bg-cyber: #f8fafc;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --accent-cyan: #0369a1;
+            --accent-green: #15803d;
+            --accent-orange: #c2410c;
+            --accent-red: #b91c1c;
+            --accent-dim: rgba(3, 105, 161, 0.12);
+            --text-cyber: #0f172a;
+            --text-dim: #64748b;
+            --border-cyber: rgba(3, 105, 161, 0.25);
+            --terminal-bg: #f1f5f9;
+            --burp-bg: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-cyber);
+            color: var(--text-cyber);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .crt-effect::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+            background-size: 100% 4px;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* TACTICAL TOP BAR NAV */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 3%;
+            position: fixed;
+            width: 96%;
+            margin: 12px 2%;
+            top: 0;
+            z-index: 100;
+            background: rgba(3, 7, 18, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-cyber);
+            border-radius: 6px;
+        }
+
+        [data-theme="light"] nav {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+            color: var(--accent-cyan);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        nav ul a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        nav ul a:hover {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        #themeToggle {
+            background: none;
+            border: 1px solid var(--border-cyber);
+            color: var(--accent-cyan);
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+        }
+
+        /* HERO AREA WITH CLI TERMINAL */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 4% 30px;
+        }
+
+        .hero-title-group h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+
+        [data-theme="light"] .hero-title-group h1 {
+            color: #0f172a;
+        }
+
+        .hero-title-group p.subtitle {
+            color: var(--accent-cyan);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+        }
+
+        /* TERMINAL INTERFACE */
+        .terminal-container {
+            width: 100%;
+            max-width: 950px;
+            background: var(--terminal-bg);
+            border: 1px solid var(--border-cyber);
+            border-radius: 6px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 15px rgba(0, 242, 254, 0.03);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-r { background: var(--accent-red); }
+        .dot-y { background: var(--accent-orange); }
+        .dot-g { background: var(--accent-green); }
+
+        .terminal-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .terminal-body {
+            height: 380px;
+            padding: 20px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #34d399;
+            line-height: 1.5;
+        }
+
+        [data-theme="light"] .terminal-body {
+            color: #166534;
+        }
+
+        .cli-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .cli-prompt { color: var(--accent-cyan); font-weight: bold; }
+        .cli-input-node {
+            background: none; border: none; color: #fff;
+            outline: none; width: 100%; font-family: 'Fira Code', monospace; font-size: 0.85rem;
+        }
+        [data-theme="light"] .cli-input-node { color: #0f172a; }
+
+        /* ADVANCED EXPLOIT LABS IDE ARCHITECTURE */
+        section {
+            padding: 80px 4%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            color: #fff;
+            border-left: 4px solid var(--accent-cyan);
+            padding-left: 12px;
+            letter-spacing: 1px;
+        }
+        [data-theme="light"] section h2 { color: #0f172a; }
+
+        .ide-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            border: 1px solid var(--border-cyber);
+            border-radius: 8px;
+            background: var(--terminal-bg);
+            height: 680px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
+
+        .ide-explorer-sidebar {
+            background: rgba(3, 6, 14, 0.95);
+            border-right: 1px solid var(--border-cyber);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-title {
+            padding: 12px 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            letter-spacing: 1px;
+        }
+
+        .file-tree { padding: 12px 8px; font-family: 'Fira Code', monospace; font-size: 0.8rem; }
+        .folder-node { padding: 6px 10px; cursor: pointer; font-weight: bold; color: var(--text-cyber); display: flex; align-items: center; gap: 6px; }
+        .folder-node::before { content: "▼"; font-size: 0.6rem; color: var(--text-dim); }
+        .folder-node.collapsed::before { content: "▶"; }
+        .folder-contents { padding-left: 20px; overflow: hidden; transition: max-height 0.25s ease-out; }
+        .file-node { padding: 5px 8px; cursor: pointer; color: var(--text-dim); border-radius: 4px; display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+        .file-node:hover { background: rgba(0, 242, 254, 0.04); color: var(--accent-cyan); }
+        .file-node.active { background: rgba(0, 242, 254, 0.1); color: var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
+
+        .ide-workspace { display: flex; flex-direction: column; background: rgba(4, 9, 20, 0.8); overflow: hidden; }
+        .workspace-tabs-bar { background: rgba(2, 5, 12, 0.9); display: flex; border-bottom: 1px solid var(--border-cyber); }
+        .workspace-tab { padding: 10px 20px; font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-cyan); border-right: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.01); }
+
+        .workspace-body { flex-grow: 1; padding: 25px; overflow-y: auto; }
+
+        /* BURP SUITE INTERACTIVE GRAPHIC UNIT */
+        .burp-suite-wrapper {
+            margin-top: 25px;
+            background: var(--burp-bg);
+            border: 1px solid var(--border-cyber);
+            border-radius: 6px;
+            overflow: hidden;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+        }
+
+        .burp-suite-header {
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .burp-suite-logo { color: var(--burp-orange); font-weight: bold; font-size: 0.75rem; letter-spacing: 1px; }
+        .burp-tabs-row { display: flex; gap: 2px; background: rgba(0,0,0,0.1); padding-top: 5px; padding-left: 10px; }
+        .burp-tab { padding: 6px 14px; background: rgba(255,255,255,0.03); color: var(--text-dim); cursor: pointer; border-radius: 4px 4px 0 0; border: 1px solid transparent; border-bottom: none; }
+        .burp-tab.active { background: var(--burp-bg); color: var(--burp-orange); border-color: var(--border-cyber); font-weight: bold; }
+        .burp-inspector-panes { display: grid; grid-template-columns: 1fr; padding: 15px; min-height: 180px; max-height: 300px; overflow-y: auto; background: #0b0f19; color: #f8fafc; line-height: 1.4; white-space: pre-wrap; }
+
+        /* CORE LAB GRID MARKDOWN STYLING */
+        .lab-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .lab-header-text h3 { font-family: 'Orbitron', sans-serif; color: var(--accent-cyan); font-size: 1.25rem; }
+        .lab-scope-badge { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--text-dim); }
+        
+        .threat-matrix-badge {
+            font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 900;
+            padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .threat-crit { background: rgba(255, 82, 82, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .threat-high { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+
+        .lab-md-node { margin-bottom: 18px; }
+        .lab-md-node h4 { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #fff; margin-bottom: 5px; text-transform: uppercase; }
+        [data-theme="light"] .lab-md-node h4 { color: #0f172a; }
+        .lab-md-node p { font-size: 0.9rem; color: var(--text-cyber); line-height: 1.6; }
+        
+        .badge-cluster { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .tech-badge { font-family: 'Fira Code', monospace; font-size: 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; }
+
+        .evidence-links-pane { margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.08); display: flex; gap: 15px; flex-wrap: wrap; }
+        .action-button { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-cyan); text-decoration: none; font-family: 'Fira Code', monospace; font-size: 0.75rem; font-weight: bold; border: 1px solid var(--border-cyber); padding: 8px 14px; border-radius: 4px; background: rgba(0, 242, 254, 0.01); transition: all 0.2s; }
+        .action-button:hover { background: var(--accent-dim); box-shadow: 0 0 10px var(--accent-cyan); }
+
+        .video-embed-box { width: 100%; border-radius: 6px; border: 1px solid var(--border-cyber); overflow: hidden; background: #000; margin-top: 15px; }
+        .video-element { width: 100%; height: auto; max-height: 290px; display: block; }
+
+        /* TACTICAL SKILLS SPECIFICATION */
+        .skills-matrix-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .skill-matrix-card { background: var(--bg-card); border: 1px solid var(--border-cyber); padding: 25px; border-radius: 6px; position: relative; }
+        .skill-matrix-card::before { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent-cyan); }
+        .skill-card-top { display: flex; justify-content: space-between; font-family: 'Fira Code', monospace; font-size: 0.75rem; margin-bottom: 12px; color: var(--accent-cyan); }
+        .skill-matrix-card h4 { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; margin-bottom: 8px; color: #fff; }
+        [data-theme="light"] .skill-matrix-card h4 { color: #0f172a; }
+        .skill-matrix-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+
+        /* CERTIFICATES MODULE */
+        .certs-matrix-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .cert-matrix-card { background: var(--bg-card); border: 1px solid var(--border-cyber); padding: 25px; border-radius: 6px; display: flex; flex-direction: column; gap: 12px; transition: all 0.25s; }
+        .cert-matrix-card:hover { transform: translateY(-3px); border-color: var(--accent-cyan); box-shadow: 0 10px 25px var(--accent-dim); }
+        .cert-card-header { display: flex; gap: 15px; align-items: center; }
+        .cert-img-node { width: 42px; height: 42px; object-fit: contain; background: #fff; padding: 2px; border-radius: 4px; }
+        .cert-card-meta h3 { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: #fff; }
+        [data-theme="light"] .cert-card-meta h3 { color: #0f172a; }
+        .cert-card-meta span { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-cyan); }
+        .cert-matrix-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; flex-grow: 1; }
+        .cert-link-anchor { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-cyan); text-decoration: none; font-weight: bold; }
+
+        /* CONTACT HUD */
+        .contact-card-hud { background: var(--bg-card); border: 1px solid var(--border-cyber); padding: 40px; border-radius: 8px; text-align: center; max-width: 750px; margin: 0 auto; }
+        .contact-card-hud p { margin-bottom: 25px; font-size: 0.95rem; line-height: 1.6; }
+        .contact-cluster-actions { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+
+        /* LOGICAL ENGINE UTILITIES */
+        .pulse-light { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .pulse-g { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); animation: pulseAnim 2s infinite; }
+        .pulse-y { background: #eab308; box-shadow: 0 0 8px #eab308; animation: pulseAnim 2s infinite; }
+        @keyframes pulseAnim { 0%, 100% { transform: scale(0.95); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
+
+        .reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 950px) {
+            .ide-container { grid-template-columns: 1fr; height: auto; }
+            .ide-explorer-sidebar { height: 200px; border-right: none; border-bottom: 1px solid var(--border-cyber); }
+            .ide-workspace { height: 500px; }
+            nav { flex-direction: column; gap: 12px; width: 94%; margin: 10px 3%; }
+            nav ul { gap: 12px; flex-wrap: wrap; justify-content: center; }
+            .hero-title-group h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body class="crt-effect">
+
+<canvas id="network-canvas"></canvas>
+
+<!-- NAVIGATION SYSTEMS -->
+<nav>
+    <div class="logo">> MOE HTET AR KAR (PHOE CHO)</div>
+    <ul>
+        <li><a href="#about">// About</a></li>
+        <li><a href="#labs">// Labs_IDE</a></li>
+        <li><a href="#skills">// Skills</a></li>
+        <li><a href="#certs">// Certifications</a></li>
+        <li><a href="#contact">// Contact</a></li>
+    </ul>
+    <button id="themeToggle">CYBER_DARK</button>
+</nav>
+
+<!-- HERO OPERATIONAL CLI TERMINAL -->
+<header class="hero">
+    <div class="hero-title-group">
+        <h1>TACTICAL OPERATIONAL PORTFOLIO</h1>
+        <p class="subtitle">Offensive Security & Pentesting Architecture</p>
+    </div>
+
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-dots">
+                <span class="dot dot-r"></span>
+                <span class="dot dot-y"></span>
+                <span class="dot dot-g"></span>
+            </div>
+            <div class="terminal-title">console@moehtet-ops: ~</div>
+            <div></div>
+        </div>
+        <div class="terminal-body" id="terminalConsoleFrame">
+            <div>[+] Secure operational environment initialized successfully.</div>
+            <div>[+] Target footprinting loaded. Type <span style="color: var(--accent-cyan); font-weight: bold;">help</span> to query the core console schema.</div>
+            <br>
+            <div id="cliResponseBuffer"></div>
+            <div class="cli-input-wrapper">
+                <span class="cli-prompt">guest@moehtet-ops:~$</span>
+                <input type="text" class="cli-input-node" id="cliInputField" autocomplete="off" autofocus>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- PROFILE SECTION -->
+<section id="about" class="reveal">
+    <h2>[01_Security_Profile]</h2>
+    <div style="background: var(--bg-card); border: 1px solid var(--border-cyber); padding: 35px; border-radius: 6px;">
+        <p style="font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px;">
+            I am a Cybersecurity Engineer focused on web application security, penetration testing, and vulnerability assessment. I enjoy building practical security configurations and solving complex, hands-on challenges to strengthen both offensive strategies and defensive guardrails. My background includes infrastructure auditing and service-level testing.
+        </p>
+        <p style="font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px;">
+            Beyond technical execution, I believe effective cybersecurity requires clear communication, structured reporting, and continuous learning. I approach security challenges with both an attacker's mindset for identifying weaknesses and a defender's mindset for understanding business impact and remediation strategies.
+        </p>
+        <p style="font-size: 0.95rem; border-top: 1px dashed rgba(0,242,254,0.12); padding-top: 15px;">
+            <strong style="color: var(--accent-cyan); font-family: 'Orbitron', sans-serif;">TARGET_POSTURE:</strong> Actively targeting positions as a Junior Cybersecurity Engineer or Penetration Tester to validate system integrations, execute application vulnerability audits, handle Linux controls, and design technical risk mitigations.
+        </p>
+    </div>
+</section>
+
+<!-- THE IDE ADVANCED INTERACTIVE LABS INTERFACE -->
+<section id="labs" class="reveal">
+    <h2>[02_Active_Exploit_Labs]</h2>
+    <div class="ide-container">
+        <!-- Sidebar directory mapping -->
+        <div class="ide-explorer-sidebar">
+            <div class="sidebar-title">Explorer: Target_Workspace</div>
+            <div class="file-tree">
+                <div class="folder-node" onclick="handleFolderCollapse('dir-ev')">evidence</div>
+                <div class="folder-contents" id="dir-ev">
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_juice_mp4')">🎥 juice_shop.mp4</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_juice_pdf')">📄 juice_shop.pdf</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_mv_mp4')">🎥 multi_value_single_col.mp4</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_mv_pdf')">📄 multi_value_single_col.pdf</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_oracle_mp4')">🎥 non_oracle_database.mp4</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_oracle_pdf')">📄 non_oracle_database.pdf</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_lpe_mp4')">🎥 window_lpe.mp4</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('ev_lpe_pdf')">📄 window_lpe.pdf</div>
+                </div>
+
+                <div class="folder-node" style="margin-top: 10px;" onclick="handleFolderCollapse('dir-md')">labs_metadata</div>
+                <div class="folder-contents" id="dir-md">
+                    <div class="file-node active" onclick="renderWorkspaceFile('lab_union_sqli')">⚡ 1_manual_union_sqli.md</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('lab_single_col')">⚡ 2_single_col_union_sqli.md</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('lab_schema_enum')">⚡ 3_non_oracle_schema_enum.md</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('lab_juice_bola')">⚡ 4_juice_shop_bypass_bola.md</div>
+                    <div class="file-node" onclick="renderWorkspaceFile('lab_win_lpe')">⚡ 5_windows_lpe_system.md</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Core Editor Context -->
+        <div class="ide-workspace">
+            <div class="workspace-tabs-bar">
+                <div class="workspace-tab" id="activeEditorTabNode">1_manual_union_sqli.md</div>
+            </div>
+            <div class="workspace-body" id="activeEditorBodyNode">
+                <!-- Default Content Loaded via Initial Static DOM -->
+                <div class="lab-title-row">
+                    <div class="lab-header-text">
+                        <h3>Manual UNION-Based SQL Injection Data Extraction</h3>
+                        <span class="lab-scope-badge">Scope: PortSwigger Web Security Academy</span>
+                    </div>
+                    <span class="threat-matrix-badge threat-high">High Severity</span>
+                </div>
+                <div class="lab-md-node">
+                    <h4>Objective</h4>
+                    <p>Solved the PortSwigger lab objective by assessing a UNION-based SQL Injection vulnerability within a product category filter to retrieve unauthorized records from external database tables.</p>
+                </div>
+                <div class="lab-md-node">
+                    <h4>Execution Workflow</h4>
+                    <p>Determined the exact column count and identified which columns accepted textual data by replacing values with NULL and injecting string literals sequentially.</p>
+                </div>
+                <div class="lab-md-node">
+                    <h4>Vulnerability Impact</h4>
+                    <p>Confirmed the vulnerability to extract administrative credentials from the users table, demonstrating critical data exposure risks.</p>
+                </div>
+                <div class="lab-md-node">
+                    <h4>Skills & Tooling</h4>
+                    <div class="badge-cluster">
+                        <span class="tech-badge">Burp Suite</span>
+                        <span class="tech-badge">SQL</span>
+                        <span class="tech-badge">Manual Testing</span>
+                        <span class="tech-badge">HTTP Analysis</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TECHNICAL CORE SKILLS -->
+<section id="skills" class="reveal">
+    <h2>[03_Tactical_Capabilities]</h2>
+    <div class="skills-matrix-layout">
+        <div class="skill-matrix-card">
+            <div class="skill-card-top"><span>CAP-01</span><span class="pulse-light pulse-g"></span></div>
+            <h4>Shell Scripting & Automation</h4>
+            <p>Developing structural Bash shell utilities, handling command automation strings, optimizing terminal logs workflows, and organizing source assets with Git repositories.</p>
+        </div>
+        <div class="skill-matrix-card">
+            <div class="skill-card-top"><span>CAP-02</span><span class="pulse-light pulse-g"></span></div>
+            <h4>Core Networking & Protocols</h4>
+            <p>Auditing structural TCP/IP models, routing pathways, standard DNS infrastructures, and tracking explicit transaction frames via Wireshark protocol network capture packages.</p>
+        </div>
+        <div class="skill-matrix-card">
+            <div class="skill-card-top"><span>CAP-03</span><span class="pulse-light pulse-g"></span></div>
+            <h4>Web Application Security</h4>
+            <p>Auditing injection vectors, malicious input sanitizations, session validation failures, internal API boundary layers, and tracking direct metrics against OWASP Top 10 guidelines.</p>
+        </div>
+        <div class="skill-matrix-card">
+            <div class="skill-card-top"><span>CAP-04</span><span class="pulse-light pulse-g"></span></div>
+            <h4>Host Systems & Architecture</h4>
+            <p>Managing structural administrative configurations on Linux kernel distributions, tracking user authorization tables, and diagnosing security components inside Windows OS environments.</p>
+        </div>
+        <div class="skill-matrix-card">
+            <div class="skill-card-top"><span>CAP-05</span><span class="pulse-light pulse-g"></span></div>
+            <h4>Offensive Security Tooling</h4>
+            <p>Deploying specialized software setups including Burp Suite Professional proxy arrays, Nmap target scanners, Hydra password assessment routines, and Metasploit frameworks.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CERTIFICATIONS SYSTEM -->
+<section id="certs" class="reveal">
+    <h2>[04_Credentials_Verification]</h2>
+    <div class="certs-matrix-layout">
+        <div class="cert-matrix-card">
+            <div class="cert-card-header">
+                <img src="https://images.credly.com/size/680x680/images/ef9f86ad-4e53-4dbc-8951-e4cab81ff09e/blob" alt="Google" class="cert-img-node">
+                <div class="cert-card-meta">
+                    <h3>Google Cybersecurity</h3>
+                    <span>Professional Validation</span>
+                </div>
+            </div>
+            <p>Handling operational SIEM tracking parameters, managing threat detection loops, building mitigation policies, and investigating security event database records.</p>
+            <a href="https://www.credly.com/badges/2dbb7724-6ad8-48f8-89b3-ddfd74db75ea/linked_in_profile" target="_blank" class="cert-link-anchor">VERIFY_SIGNATURE //</a>
+        </div>
+
+        <div class="cert-matrix-card">
+            <div class="cert-card-header">
+                <img src="https://s3.amazonaws.com/coursera_assets/meta_images/generated/CERTIFICATE_LANDING_PAGE/CERTIFICATE_LANDING_PAGE~3IY4SEI4F1SM/CERTIFICATE_LANDING_PAGE~3IY4SEI4F1SM.jpeg" alt="Kali" class="cert-img-node">
+                <div class="cert-card-meta">
+                    <h3>Kali Linux Ethical Hacking</h3>
+                    <span>Specialization Certificate</span>
+                </div>
+            </div>
+            <p>Analyzing systemic host exploits, evaluating server infrastructure exposures, crafting custom target attacks, and verifying systems footprinting strategies.</p>
+            <a href="https://www.coursera.org/account/accomplishments/specialization/3IY4SEI4F1SM" target="_blank" class="cert-link-anchor">VERIFY_SIGNATURE //</a>
+        </div>
+
+        <div class="cert-matrix-card">
+            <div class="cert-card-header">
+                <img src="https://s3.amazonaws.com/coursera_assets/meta_images/generated/CERTIFICATE_LANDING_PAGE/CERTIFICATE_LANDING_PAGE~47RRHLRSA1Q6/CERTIFICATE_LANDING_PAGE~47RRHLRSA1Q6.jpeg" alt="CompTIA" class="cert-img-node">
+                <div class="cert-card-meta">
+                    <h3>CompTIA PenTest+</h3>
+                    <span>Specialization Validation</span>
+                </div>
+            </div>
+            <p>Designing structured compliance vulnerability models, reporting active technical security frameworks, and validating organizational network operational stances.</p>
+            <a href="https://www.coursera.org/account/accomplishments/specialization/47RRHLRSA1Q6" target="_blank" class="cert-link-anchor">VERIFY_SIGNATURE //</a>
+        </div>
+    </div>
+</section>
+
+<!-- COMMUNICATIONS GATEWAY -->
+<section id="contact" class="reveal">
+    <h2>[05_Communications_Gateway]</h2>
+    <div class="contact-card-hud">
+        <p>Establish secure channels for validation checks, technical collaboration pipelines, or corporate assessment requests.</p>
+        <div class="contact-cluster-actions">
+            <a href="mailto:moehtetarkar259@gmail.com?subject=Secure Architecture Assessment" class="action-button">📩 Email: moehtetarkar259@gmail.com</a>
+            <a href="https://github.com/moe1112025" target="_blank" class="action-button">💻 GitHub: moe1112025</a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // 1. DYNAMIC HIGH PERFORMANCE PERFORMANCE NODES MATRIX CANVAS
+    const canvas = document.getElementById('network-canvas');
+    const ctx = canvas.getContext('2d');
+    let nodes = [];
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+
+    class CyberNode {
+        constructor() { this.x = Math.random()*w; this.y = Math.random()*h; this.dx = (Math.random()-0.5)*0.5; this.dy = (Math.random()-0.5)*0.5; }
+        move() { this.x += this.dx; this.y += this.dy; if(this.x<0 || this.x>w) this.dx *= -1; if(this.y<0 || this.y>h) this.dy *= -1; }
+    }
+    for(let i=0; i<45; i++) nodes.push(new CyberNode());
+
+    function drawNodeGrid() {
+        ctx.clearRect(0,0,w,h);
+        let activeAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent-cyan').trim();
+        ctx.fillStyle = activeAccent;
+        nodes.forEach(n => {
+            n.move();
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath(); ctx.arc(n.x, n.y, 1.2, 0, Math.PI*2); ctx.fill();
+        });
+        for(let i=0; i<nodes.length; i++) {
+            for(let j=i+1; j<nodes.length; j++) {
+                let dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+                if(dist < 120) {
+                    ctx.strokeStyle = activeAccent;
+                    ctx.globalAlpha = (120 - dist) / 120 * 0.12;
+                    ctx.lineWidth = 0.7;
+                    ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(drawNodeGrid);
+    }
+    drawNodeGrid();
+
+    // 2. ULTRA-ADVANCED TERMINAL INTERFACE WITH MEMORY HISTORY NODES
+    const inputNode = document.getElementById('cliInputField');
+    const bufferNode = document.getElementById('cliResponseBuffer');
+    const terminalFrame = document.getElementById('terminalConsoleFrame');
+    
+    let commandHistory = [];
+    let historyPointer = -1;
+
+    const terminalCommandsSchema = {
+        help: "Operational Directives:\n  [whoami]  - Identity parameters metadata\n  [labs]    - Query exploit directory targets\n  [skills]  - Print tech skills stack\n  [certs]   - Enumerate security validation signatures\n  [scan]    - Execute real-time tactical port audit simulation\n  [clear]   - Flush terminal memory stream",
+        whoami: "Subject Profile:\n  Identity Mapping: Phoe Cho (Professional Vector: Moe Htet Ar Kar)\n  Domain: Cybersecurity Engineer / Vulnerability Researcher\n  Specialization: Web Exploit Pathways, Core OS Infrastructure Defenses",
+        labs: "Directory Records Found:\n  1. Manual UNION-Based SQLi Data Extraction\n  2. Single-Column SQLi Multi-Value Bypass\n  3. Non-Oracle Database Schema Mapping\n  4. OWASP Juice Shop API BOLA Exploit\n  5. Windows Local Privilege Escalation",
+        skills: "Taxonomy Attributes:\n  - AppSec: Advanced Injection Arrays, Session Flaws, OWASP Vulnerabilities\n  - Infrastructure: Linux OS Administration Controls, Windows API Permissions\n  - Networks: TCP/IP Layer Tunnels Routing, Wireshark Frame Packet Audits\n  - Security Systems: Burp Suite Professional, Nmap Target Engines, Metasploit Frameworks",
+        certs: "Cryptographic Signatures Verified:\n  - Google Cybersecurity Professional Certificate\n  - Kali Linux Ethical Hacking Specialization\n  - CompTIA PenTest+ Specialization\n  - IBM Cybersecurity Analyst Track (Active Status: Enrolled)"
+    };
+
+    inputNode.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const rawVal = inputNode.value.trim();
+            const lowerVal = rawVal.toLowerCase();
+            inputNode.value = '';
+
+            if(rawVal !== '') {
+                commandHistory.push(rawVal);
+                historyPointer = commandHistory.length;
+            }
+
+            const promptEcho = document.createElement('div');
+            promptEcho.innerHTML = `<span class="cli-prompt">guest@moehtet-ops:~$</span> ${rawVal}`;
+            bufferNode.appendChild(promptEcho);
+
+            if (lowerVal === 'clear') { bufferNode.innerHTML = ''; return; }
+            
+            const responseNode = document.createElement('div');
+            responseNode.style.marginBottom = '10px';
+            responseNode.style.whiteSpace = 'pre-wrap';
+
+            if (terminalCommandsSchema[lowerVal]) {
+                responseNode.textContent = terminalCommandsSchema[lowerVal];
+                bufferNode.appendChild(responseNode);
+            } else if (lowerVal === 'scan') {
+                triggerScrollingLogsScan(responseNode);
+            } else if (rawVal !== '') {
+                responseNode.textContent = `Directive [${rawVal}] unrecognized. Query 'help' for schema logs.`;
+                responseNode.style.color = 'var(--accent-red)';
+                bufferNode.appendChild(responseNode);
+            }
+            terminalFrame.scrollTop = terminalFrame.scrollHeight;
+        } 
+        else if (e.key === 'ArrowUp') {
+            if (historyPointer > 0) {
+                historyPointer--;
+                inputNode.value = commandHistory[historyPointer];
+            }
+            e.preventDefault();
+        } 
+        else if (e.key === 'ArrowDown') {
+            if (historyPointer < commandHistory.length - 1) {
+                historyPointer++;
+                inputNode.value = commandHistory[historyPointer];
+            } else {
+                historyPointer = commandHistory.length;
+                inputNode.value = '';
+            }
+            e.preventDefault();
+        }
+    });
+
+    function triggerScrollingLogsScan(targetLogNode) {
+        bufferNode.appendChild(targetLogNode);
+        inputNode.disabled = true;
+        let logLines = [
+            "Initializing asynchronous operational scanner target...",
+            "DBUG [04:49:10] Connecting interfaces to raw socket array...",
+            "WARN [04:49:11] Target host payload filtering system recognized.",
+            "INFO [04:49:12] Port binding mapping: [80: Open], [443: Open], [8080: Open]",
+            "DBUG [04:49:13] Launching custom UNION injection payloads vectors verification...",
+            "CRIT [04:49:14] SQL injection confirmed on route path: /api/products/filter?category=",
+            "INFO [04:49:15] Validating local authorization tables data leaks...",
+            "SUCCESS [✓] Pipeline execution finished. Exploits cataloged inside active workspace dashboard."
+        ];
+        
+        let index = 0;
+        targetLogNode.textContent = '';
+        
+        const logTimer = setInterval(() => {
+            targetLogNode.textContent += logLines[index] + "\n";
+            terminalFrame.scrollTop = terminalFrame.scrollHeight;
+            index++;
+            if (index >= logLines.length) {
+                clearInterval(logTimer);
+                inputNode.disabled = false;
+                inputNode.focus();
+            }
+        }, 220);
+    }
+
+    // 3. ARCHITECTURAL WORKSPACE ENGINE WITH INTEGRATED BURP SUITE INTERACTIVE CHANNELS
+    const fileRecordsDataset = {
+        ev_juice_mp4: `
+            <h3 class="lab-view-title">juice_shop.mp4</h3>
+            <span style="font-family:'Fira Code', monospace; color:var(--text-dim); font-size:0.75rem;">Directory: evidence/juice_shop.mp4</span>
+            <div class="video-embed-box">
+                <video class="video-element" controls><source src="evidence/juice_shop.mp4" type="video/mp4"></video>
+            </div>
+            <p style="margin-top:10px; font-size:0.85rem; color:var(--text-dim);">Proof of Concept capture showcasing API BOLA tracking loops bypass configurations.</p>
+        `,
+        ev_juice_pdf: `
+            <h3>juice_shop.pdf</h3>
+            <div style="margin-top:20px;"><a href="evidence/juice_shop.pdf" target="_blank" class="action-button">👁️ REVEAL_PDF_REPORT_STREAM</a></div>
+        `,
+        ev_mv_mp4: `
+            <h3>multi_value_single_col.mp4</h3>
+            <div class="video-embed-box">
+                <video class="video-element" controls><source src="evidence/multi_value_single_col.mp4" type="video/mp4"></video>
+            </div>
+        `,
+        ev_mv_pdf: `
+            <h3>multi_value_single_col.pdf</h3>
+            <div style="margin-top:20px;"><a href="evidence/multi_value_single_col.pdf" target="_blank" class="action-button">👁️ REVEAL_PDF_REPORT_STREAM</a></div>
+        `,
+        ev_oracle_mp4: `
+            <h3>non_oracle_database.mp4</h3>
+            <div class="video-embed-box">
+                <video class="video-element" controls><source src="evidence/non_oracle_database.mp4" type="video/mp4"></video>
+            </div>
+        `,
+        ev_oracle_pdf: `
+            <h3>non_oracle_database.pdf</h3>
+            <div style="margin-top:20px;"><a href="evidence/non_oracle_database.pdf" target="_blank" class="action-button">👁️ REVEAL_PDF_REPORT_STREAM</a></div>
+        `,
+        ev_lpe_mp4: `
+            <h3>window_lpe.mp4</h3>
+            <div class="video-embed-box">
+                <video class="video-element" controls><source src="evidence/window_lpe.mp4" type="video/mp4"></video>
+            </div>
+        `,
+        ev_lpe_pdf: `
+            <h3>window_lpe.pdf</h3>
+            <div style="margin-top:20px;"><a href="evidence/window_lpe.pdf" target="_blank" class="action-button">👁️ REVEAL_PDF_REPORT_STREAM</a></div>
+        `,
+        lab_union_sqli: `
+            <div class="lab-title-row">
+                <div class="lab-header-text">
+                    <h3>Manual UNION-Based SQL Injection Data Extraction</h3>
+                    <span class="lab-scope-badge">Scope: PortSwigger Web Security Academy</span>
+                </div>
+                <span class="threat-matrix-badge threat-high">High Severity</span>
+            </div>
+            <div class="lab-md-node">
+                <h4>Objective</h4>
+                <p>Solved the PortSwigger lab objective by assessing a UNION-based SQL Injection vulnerability within a product category filter to retrieve unauthorized records from external database tables.</p>
+            </div>
+            <div class="lab-md-node">
+                <h4>Execution Workflow</h4>
+                <p>Determined the exact column count and identified which columns accepted textual data by replacing values with NULL and injecting string literals sequentially.</p>
+            </div>
+            <div class="lab-md-node">
+                <h4>Vulnerability Impact</h4>
+                <p>Confirmed the vulnerability to extract administrative credentials from the users table, demonstrating critical data exposure risks.</p>
+            </div>
+            <div class="lab-md-node">
+                <h4>Skills & Tooling</h4>
+                <div class="badge-cluster">
+                    <span class="tech-badge">Burp Suite</span><span class="tech-badge">SQL</span><span class="tech-badge">Manual Testing</span>
+                </div>
+            </div>
+        `,
+        lab_single_col: `
+            <div class="lab-title-row">
+                <div class="lab-header-text">
+                    <h3>Multi-Value Retrieval via Single-Column SQL Injection</h3>
+                    <span class="lab-scope-badge">Scope: PortSwigger Web Security Academy</span>
+                </div>
+                <span class="threat-matrix-badge threat-high">High Severity</span>
+            </div>
+            <div class="lab-md-node">
+                <h4>Objective</h4>
+                <p>Target a UNION-based SQLi flaw to complete the lab environment objective, bypassing application display limits that only rendered a single text column in the HTTP response.</p>
+            </div>
+            <div class="lab-md-node">
+                <h4>Execution Workflow</h4>
+                <p>Crafted a specialized query using data-type compatible string concatenation operators to group multiple database fields (usernames and passwords) together.</p>
+            </div>
+            
+            <!-- INTERACTIVE BURP SUITE COMPONENT -->
+            <div class="burp-suite-wrapper">
+                <div class="burp-suite-header">
+                    <span class="burp-suite-logo">BURP SUITE REPEATER // INSPECTOR</span>
+                    <span style="color:var(--accent-green)">HTTP/1.1 200 OK</span>
+                </div>
+                <div class="burp-tabs-row">
+                    <div class="burp-tab active" onclick="toggleBurpTab(this, 'req-l2')">Raw Request</div>
+                    <div class="burp-tab" onclick="toggleBurpTab(this, 'res-l2')">Raw Response</div>
+                </div>
+                <div class="burp-inspector-panes" id="burpContentContainer-l2">GET /filter?category=Gifts'+UNION+SELECT+NULL,username||'~'||password+FROM+users-- HTTP/1.1\nHost: target-academy.web-security.net\nUser-Agent: Mozilla/5.0 (Kali/Linux)\nAccept: text/html\nConnection: close</div>
+            </div>
+
+            <div class="evidence-links-pane">
+                <a href="evidence/multi_value_single_col.pdf" target="_blank" class="action-button">📄 View Report Document</a>
+                <a href="evidence/multi_value_single_col.mp4" target="_blank" class="action-button">🎥 Play Target Capture</a>
+            </div>
+        `,
+        lab_schema_enum: `
+            <div class="lab-title-row">
+                <div class="lab-header-text">
+                    <h3>Non-Oracle Database Schema Enumeration Assessment</h3>
+                    <span class="lab-scope-badge">Scope: PortSwigger Web Security Academy</span>
+                </div>
+                <span class="threat-matrix-badge threat-high">High Severity</span>
+            </div>
+            <div class="lab-md-node">
+                <h4>Objective</h4>
+                <p>Identified and validated a SQL Injection vulnerability on a non-Oracle database to enumerate the underlying database structure in a simulated black-box scenario.</p>
+            </div>
+            <div class="lab-md-node">
+                <h4>Execution Workflow</h4>
+                <p>Queried the information_schema.tables and information_schema.columns system views to map out existing table names and relational fields manually.</p>
+            </div>
+
+            <div class="burp-suite-wrapper">
+                <div class="burp-suite-header">
+                    <span class="burp-suite-logo">BURP SUITE REPEATER // INSPECTOR</span>
+                    <span style="color:var(--accent-green)">HTTP/1.1 200 OK</span>
+                </div>
+                <div class="burp-tabs-row">
+                    <div class="burp-tab active" onclick="toggleBurpTab(this, 'req-l3')">Raw Request</div>
+                    <div class="burp-tab" onclick="toggleBurpTab(this, 'res-l3')">Raw Response</div>
+                </div>
+                <div class="burp-inspector-panes" id="burpContentContainer-l3">GET /filter?category=Tools'+UNION+SELECT+table_name,column_name+FROM+information_schema.columns-- HTTP/1.1\nHost: target-academy.web-security.net\nConnection: close</div>
+            </div>
+
+            <div class="evidence-links-pane">
+                <a href="evidence/non_oracle_database.pdf" target="_blank" class="action-button">📄 View Report Document</a>
+                <a href="evidence/non_oracle_database.mp4" target="_blank" class="action-button">🎥 Play Target Capture</a>
+            </div>
+        `,
+        lab_juice_bola: `
+            <div class="lab-title-row">
+                <div class="lab-header-text">
+                    <h3>Authentication Bypass & API Authorization Validation</h3>
+                    <span class="lab-scope-badge">Scope: OWASP Juice Shop Vulnerability Lab</span>
+                </div>
+                <span class="threat-matrix-badge threat-crit">Critical Severity</span>
+            </div>
+            <div class="lab-md-node">
+                <h4>Vulnerability Analysis</h4>
+                <p>Manipulated backend API session tokens and basket parameters to execute an Broken Object Level Authorization (BOLA / IDOR) sequence, capturing access logs from cross-user profiles.</p>
+            </div>
+
+            <div class="burp-suite-wrapper">
+                <div class="burp-suite-header">
+                    <span class="burp-suite-logo">BURP SUITE REPEATER // INSPECTOR</span>
+                    <span style="color:var(--accent-green)">HTTP/1.1 200 OK</span>
+                </div>
+                <div class="burp-tabs-row">
+                    <div class="burp-tab active" onclick="toggleBurpTab(this, 'req-l4')">Raw Request</div>
+                    <div class="burp-tab" onclick="toggleBurpTab(this, 'res-l4')">Raw Response</div>
+                </div>
+                <div class="burp-inspector-panes" id="burpContentContainer-l4">GET /rest/basket/5 HTTP/1.1\nHost: owasp-juice-shop.herokuapp.com\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\nConnection: keep-alive</div>
+            </div>
+
+            <div class="evidence-links-pane">
+                <a href="evidence/juice_shop.pdf" target="_blank" class="action-button">📄 View Report Document</a>
+                <a href="evidence/juice_shop.mp4" target="_blank" class="action-button">🎥 Play Target Capture</a>
+            </div>
+        `,
+        lab_win_lpe: `
+            <div class="lab-title-row">
+                <div class="lab-header-text">
+                    <h3>Windows Local Privilege Escalation (LPE) Lab Simulation</h3>
+                    <span class="lab-scope-badge">Scope: Host Infrastructure Lab</span>
+                </div>
+                <span class="threat-matrix-badge threat-high">High Severity</span>
+            </div>
+            <div class="lab-md-node">
+                <h4>Exploit Strategy</h4>
+                <p>Generated a secondary system shell executable loop via Msfvenom payloads targeting local folder paths with unquoted target binary parameters configurations.</p>
+            </div>
+            <div class="lab-md-node">
+                <h4>Privilege Elevation</h4>
+                <p>Executed structural verification tokens checking shifting authorization credentials flags up to NT AUTHORITY\\SYSTEM environment.</p>
+            </div>
+
+            <div class="evidence-links-pane">
+                <a href="evidence/window_lpe.pdf" target="_blank" class="action-button">📄 View Report Document</a>
+                <a href="evidence/window_lpe.mp4" target="_blank" class="action-button">🎥 Play Target Capture</a>
+            </div>
+        `
+    };
+
+    const burpDataStore = {
+        'req-l2': "GET /filter?category=Gifts'+UNION+SELECT+NULL,username||'~'||password+FROM+users-- HTTP/1.1\nHost: target-academy.web-security.net\nUser-Agent: Mozilla/5.0 (Kali/Linux)\nAccept: text/html\nConnection: close",
+        'res-l2': "HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\nConnection: close\n\n<html>\n  <th>Target Metadata Account Records Output</th>\n  <tr>administrator~p@ssw0rd123</tr>\n  <tr>carlos~secret99</tr>\n</html>",
+        'req-l3': "GET /filter?category=Tools'+UNION+SELECT+table_name,column_name+FROM+information_schema.columns-- HTTP/1.1\nHost: target-academy.web-security.net\nConnection: close",
+        'res-l3': "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n  <td>users_table</td><td>username_column</td>\n  <td>users_table</td><td>password_column</td>\n</html>",
+        'req-l4': "GET /rest/basket/5 HTTP/1.1\nHost: owasp-juice-shop.herokuapp.com\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\nConnection: keep-alive",
+        'res-l4': "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": 5,\n    \"userEmail\": \"admin@juice-sh.op\",\n    \"products\": [{ \"id\": 1, \"name\": \"Juice Exploit Variant Pack\" }]\n  }\n}"
+    };
+
+    function handleFolderCollapse(folderContainerId) {
+        const tgt = document.getElementById(folderContainerId);
+        const trigger = tgt.previousElementSibling;
+        if(tgt.style.maxHeight === '0px' || tgt.style.maxHeight === '') {
+            tgt.style.maxHeight = '400px'; trigger.classList.remove('collapsed');
+        } else {
+            tgt.style.maxHeight = '0px'; trigger.classList.add('collapsed');
+        }
+    }
+
+    function renderWorkspaceFile(fileKey) {
+        document.querySelectorAll('.file-node').forEach(n => n.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const activeTitle = event.currentTarget.textContent.trim().substring(2);
+        document.getElementById('activeEditorTabNode').textContent = activeTitle;
+        document.getElementById('activeEditorBodyNode').innerHTML = fileRecordsDataset[fileKey];
+    }
+
+    function toggleBurpTab(tabElement, contentKey) {
+        const parentRow = tabElement.parentElement;
+        parentRow.querySelectorAll('.burp-tab').forEach(t => t.classList.remove('active'));
+        tabElement.classList.add('active');
+        
+        const outputContainer = parentRow.nextElementSibling;
+        outputContainer.textContent = burpDataStore[contentKey];
+    }
+
+    // 4. GENERAL THEME SWITCHING ENGINE
+    const btnToggle = document.getElementById('themeToggle');
+    btnToggle.addEventListener('click', () => {
+        const curr = document.documentElement.getAttribute('data-theme');
+        if (curr === 'light') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            btnToggle.textContent = 'CYBER_DARK';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            btnToggle.textContent = 'CYBER_LIGHT';
+        }
+    });
+
+    // 5. WINDOW VIEWPORT SCROLL UTILITIES
+    const elementsArray = document.querySelectorAll('.reveal');
+    function triggerScrollVisibility() {
+        elementsArray.forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight - 60) el.classList.add('active');
+        });
+    }
+    window.addEventListener('scroll', triggerScrollVisibility);
+    window.addEventListener('load', triggerScrollVisibility);
+</script>
+</body>
+</html>
